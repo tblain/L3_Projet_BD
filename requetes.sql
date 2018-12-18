@@ -38,11 +38,33 @@ as
   )
   ;
 
-  select distinct on (groupe_id) groupe_id, name_full,
+select 
+from (
+  select groupe_id, name_full, count(*),
     ceil(cast(count(*) as decimal)/(select count(*) from meps join outcomes on (meps.mepid=outcomes.mepid) group by name_full having name_full = m2.name_full) * 100)
   from Outcomes o2
+  join (select * from meps where name_full = 'Jussi HALLA-AHO') m2 on (o2.mepid = m2.mepid)
+  where vote = any(
+    select vote
+    from vote_majo_par_groupe_par_ballot v
+    where v.ballotid = o2.ballotid
+    and v.groupe_id = m2.groupe_id
+  )
+  group by groupe_id, name_full
+  order by groupe_id, count(groupe_id) desc;
+)
+;
+
+Perussuomalaiset
+
+-- 17h23
+select groupe_id, name_full, count,
+ceil(cast(count as decimal)/(select count(*) from meps join outcomes on (meps.mepid=outcomes.mepid) group by name_full having name_full = r.name_full) * 100)
+from (
+  select distinct on(groupe_id) groupe_id, name_full, count(*) as count
+  from Outcomes o2
   join meps m2 on (o2.mepid = m2.mepid)
-  where groupe_id = 'ENF' and vote = any(
+  where groupe_id = 'NI' and vote = any(
     select vote
     from vote_majo_par_groupe_par_ballot v
     where v.ballotid = o2.ballotid
@@ -50,4 +72,5 @@ as
   )
   group by groupe_id, name_full
   order by groupe_id, count(groupe_id) desc
-  ;
+) r
+;

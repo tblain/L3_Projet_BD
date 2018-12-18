@@ -18,7 +18,7 @@ CREATE TABLE Ballots (
 CREATE TABLE Tags(
     tag_id TEXT PRIMARY KEY NOT NULL,
     tag_label TEXT
-);
+T);
 
 CREATE TABLE Ballots_To_Tags(
   ballotid INT references Ballots(ballotid),
@@ -44,11 +44,11 @@ CREATE TABLE Outcomes(
 
 -- Injecter les tuples
 
-\copy ballots(ballotid, vote_date, commitee) from 'C:\Users\Public\easy_access\EP_DATA\BALLOTS.csv' with (format csv, delimiter E'\t', header);
-\copy Tags from 'C:\Users\Public\easy_access\EP_DATA\TAGS.csv' with (format csv, delimiter E'\t', header);
-\copy Ballots_To_Tags(ballotid, tag_id) from 'C:\Users\Public\easy_access\EP_DATA\BALLOTS_TO_TAGS.csv' with (format csv, delimiter E'\t', header);
-\copy MEPS from 'C:\Users\Public\easy_access\EP_DATA\MEPS.csv' with (format csv, delimiter E'\t', header);
-\copy Outcomes from 'C:\Users\Public\easy_access\EP_DATA\Outcomes.csv' with (format csv, delimiter E'\v', header);
+\copy ballots(ballotid, vote_date, commitee) from '/home/tblain/Documents/license/bd/EP_DATA/ballots.csv' with (format csv, delimiter E'\t', header);
+\copy Tags from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/TAGS.csv' with (format csv, delimiter E'\t', header);
+\copy Ballots_To_Tags(ballotid, tag_id) from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/BALLOTS_TO_TAGS.csv' with (format csv, delimiter E'\t', header);
+\copy MEPS from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/MEPS.csv' with (format csv, delimiter E'\t', header);
+\copy Outcomes from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/OUTCOMES.csv' with (format csv, delimiter E'\t', header);
 
 /*
 \copy ballots(ballotid, vote_date, commitee) from '/home/tblain/Documents/bd/projet/EP_DATA/BALLOTS.csv' with (format csv, delimiter E'\t', header);
