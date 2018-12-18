@@ -45,7 +45,7 @@ LANGUAGE PLPGSQL;
 CREATE OR REPLACE FUNCTION MAJORITY_VOTE_PARTY(IN ballot integer, IN party TEXT) RETURNS integer AS
 $$
 DECLARE 
-	cursor_vote CURSOR FOR select * from meps join outcomes using(ballotid) 
+	cursor_vote CURSOR FOR select * from meps join outcomes using(mepid) 
   	where national_party = party and ballotid = ballot;
   	pro integer;
   	against integer;
@@ -67,27 +67,131 @@ BEGIN
 
 	END LOOP;
   
-  IF pro = 0 and against = 0 and abstain = 0 THEN
-    return 0;
-  ELSIF pro = against and against = abstain and abstain != 0 THEN
-    return 7;
-  ELSE
-    IF pro > against and pro > abstain THEN
-        return 1;
-    ELSIF against > pro and against > abstain THEN
-        return 2;
-    ELSIF abstain > against and abstain > pro THEN
-        return 3;
-    ELSE
-        IF pro > abstain and against > abstain THEN 
-          return 4;
-        ELSIF pro > against and abstain > against THEN
-          return 5;
-        ELSIF abstain > pro and against > pro THEN
-          return 6;
-        END IF;
-    END IF;
-  END IF;
+  	IF pro = 0 and against = 0 and abstain = 0 THEN
+		return 0;
+  	ELSIF pro = against and against = abstain and abstain != 0 THEN
+		return 7;
+  	ELSE
+		IF pro > against and pro > abstain THEN
+	  		return 1;
+		ELSIF against > pro and against > abstain THEN
+	  		return 2;
+		ELSIF abstain > against and abstain > pro THEN
+	  		return 3;
+		ELSE
+	  		IF pro > abstain and against > abstain THEN 
+				return 4;
+	  		ELSIF pro > against and abstain > against THEN
+				return 5;
+	  		ELSIF abstain > pro and against > pro THEN
+				return 6;
+	  		END IF;
+		END IF;
+  	END IF;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+-- 5
+
+CREATE OR REPLACE FUNCTION MAJORITY_VOTE_GROUP(IN ballot integer, IN groupe TEXT) RETURNS integer AS
+$$
+DECLARE 
+	cursor_vote CURSOR FOR select * from meps join outcomes using(mepid) 
+  	where group_id = groupe and ballotid = ballot;
+  	pro integer;
+  	against integer;
+  	abstain integer;
+BEGIN
+  	pro := 0;
+  	against := 0;
+  	abstain := 0;
+	
+	FOR line IN cursor_vote LOOP
+
+		IF line.vote = 'For' THEN
+		  pro := pro + 1;
+		ELSIF line.vote = 'Against' THEN
+		  against := against + 1;
+		ELSIF line.vote = 'Abstain' THEN
+		  abstain := abstain + 1;
+		END IF;
+
+	END LOOP;
+  
+  	IF pro = 0 and against = 0 and abstain = 0 THEN
+		return 0;
+  	ELSIF pro = against and against = abstain and abstain != 0 THEN
+		return 7;
+  	ELSE
+		IF pro > against and pro > abstain THEN
+	  		return 1;
+		ELSIF against > pro and against > abstain THEN
+	  		return 2;
+		ELSIF abstain > against and abstain > pro THEN
+	  		return 3;
+		ELSE
+	  		IF pro > abstain and against > abstain THEN 
+				return 4;
+	  		ELSIF pro > against and abstain > against THEN
+				return 5;
+	  		ELSIF abstain > pro and against > pro THEN
+				return 6;
+	  		END IF;
+		END IF;
+  	END IF;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+-- 6
+
+CREATE OR REPLACE FUNCTION MAJORITY_VOTE_COUNTRY(IN ballot integer, IN country TEXT) RETURNS integer AS
+$$
+DECLARE 
+	cursor_vote CURSOR FOR select * from meps join outcomes using(mepid) 
+  	where 'country' = country and ballotid = ballot;
+  	pro integer;
+  	against integer;
+  	abstain integer;
+BEGIN
+  	pro := 0;
+  	against := 0;
+  	abstain := 0;
+	
+	FOR line IN cursor_vote LOOP
+
+		IF line.vote = 'For' THEN
+		  pro := pro + 1;
+		ELSIF line.vote = 'Against' THEN
+		  against := against + 1;
+		ELSIF line.vote = 'Abstain' THEN
+		  abstain := abstain + 1;
+		END IF;
+
+	END LOOP;
+  
+  	IF pro = 0 and against = 0 and abstain = 0 THEN
+		return 0;
+  	ELSIF pro = against and against = abstain and abstain != 0 THEN
+		return 7;
+  	ELSE
+		IF pro > against and pro > abstain THEN
+	  		return 1;
+		ELSIF against > pro and against > abstain THEN
+	  		return 2;
+		ELSIF abstain > against and abstain > pro THEN
+	  		return 3;
+		ELSE
+	  		IF pro > abstain and against > abstain THEN 
+				return 4;
+	  		ELSIF pro > against and abstain > against THEN
+				return 5;
+	  		ELSIF abstain > pro and against > pro THEN
+				return 6;
+	  		END IF;
+		END IF;
+  	END IF;
 END;
 $$
 LANGUAGE PLPGSQL;
