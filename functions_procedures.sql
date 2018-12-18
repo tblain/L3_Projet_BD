@@ -42,49 +42,51 @@ LANGUAGE PLPGSQL;
 
 -- 4 
 
-CREATE OR REPLACE FUNCTION MAJORITY VOTE PARTY(IN ballot integer, IN party TEXT) RETURNS integer AS
+CREATE OR REPLACE FUNCTION MAJORITY_VOTE_PARTY(IN ballot integer, IN party TEXT) RETURNS integer AS
 $$
 DECLARE 
 	cursor_vote CURSOR FOR select * from meps join outcomes using(ballotid) 
-  where national_party = party and ballotid = ballot;
-  pro integer;
-  against integer;
-  abstain integer;
+  	where national_party = party and ballotid = ballot;
+  	pro integer;
+  	against integer;
+  	abstain integer;
 BEGIN
-  pro := 0;
-  against := 0;
-  abstain := 0;
-	for line in cursor_vote
-	LOOP
+  	pro := 0;
+  	against := 0;
+  	abstain := 0;
+	
+	FOR line IN cursor_vote LOOP
+
 		IF line.vote = 'For' THEN
-      pro := pro + 1;
-    ELSE IF line.vote = 'Against' THEN
-      against := against + 1;
-    ELSE IF line.vote = 'Abstain' THEN
-      abstain := abstain + 1;
+		  pro := pro + 1;
+		ELSIF line.vote = 'Against' THEN
+		  against := against + 1;
+		ELSIF line.vote = 'Abstain' THEN
+		  abstain := abstain + 1;
 		END IF;
+
 	END LOOP;
   
   IF pro = 0 and against = 0 and abstain = 0 THEN
     return 0;
-  ELSE IF pro = against and against = abstain and abstain != 0 :
+  ELSIF pro = against and against = abstain and abstain != 0 THEN
     return 7;
   ELSE
     IF pro > against and pro > abstain THEN
-      return 1;
-    ELSE IF against > pro and against > abstain THEN
-      return 2;
-    ELSE IF abstain > against and abstain > pro THEN
-      return 3;
+        return 1;
+    ELSIF against > pro and against > abstain THEN
+        return 2;
+    ELSIF abstain > against and abstain > pro THEN
+        return 3;
     ELSE
-      IF pro > abstain and against > abstain THEN 
-        return 4;
-      ELSE IF for > against and abstain > against THEN
-        return 5;
-      ELSE IF abstain > for and against > for THEN
-        return 6;
-      END IF;
-    ENDI IF;
+        IF pro > abstain and against > abstain THEN 
+          return 4;
+        ELSIF pro > against and abstain > against THEN
+          return 5;
+        ELSIF abstain > pro and against > pro THEN
+          return 6;
+        END IF;
+    END IF;
   END IF;
 END;
 $$

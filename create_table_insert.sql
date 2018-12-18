@@ -36,8 +36,8 @@ CREATE TABLE Meps(
 -- la table est tout d'abord créée sans contraintes pour éviter les erreurs de doublons lors de l'import
 -- on rajoutera les contraintes après
 CREATE TABLE Outcomes(
-  ballotid INT,
-  mepid INT,
+  ballotid integer,
+  mepid integer,
   vote TEXT
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE Outcomes(
 \copy Tags from 'C:\Users\Public\easy_access\EP_DATA\TAGS.csv' with (format csv, delimiter E'\t', header);
 \copy Ballots_To_Tags(ballotid, tag_id) from 'C:\Users\Public\easy_access\EP_DATA\BALLOTS_TO_TAGS.csv' with (format csv, delimiter E'\t', header);
 \copy MEPS from 'C:\Users\Public\easy_access\EP_DATA\MEPS.csv' with (format csv, delimiter E'\t', header);
-\copy Outcomes from 'C:\Users\Public\easy_access\EP_DATA\Outcomes.csv' with (format csv, delimiter E'\t', header);
+\copy Outcomes from 'C:\Users\Public\easy_access\EP_DATA\Outcomes.csv' with (format csv, delimiter E'\v', header);
 
 /*
 \copy ballots(ballotid, vote_date, commitee) from '/home/tblain/Documents/bd/projet/EP_DATA/BALLOTS.csv' with (format csv, delimiter E'\t', header);
