@@ -74,3 +74,10 @@ alter table Outcomes
   add constraint fk_ballotid foreign key(ballotid) references ballots(ballotid);
 alter table Outcomes
   add constraint fk_mepid foreign key(mepid) references meps(mepid);
+  
+  
+-- indexs
+
+create unique index on tags(tag_id);
+create unique index on ballots(ballotid);
+create unique index on meps(mepid);
