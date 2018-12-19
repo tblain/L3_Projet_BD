@@ -323,3 +323,40 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+-- 10
+
+CREATE OR REPLACE FUNCTION CONTEXTUAL_SIMILARITY_PARTY(IN tag TEXT, IN party1 TEXT, IN party2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+	cursor_ballot_with_tag CURSOR FOR select distinct ballotid from outcomes 
+	join meps using(mepid) 
+    where national_party = party1 
+	and ballotid in 
+    	(
+			select distinct ballotid from outcomes join meps using(mepid) where national_party = party2
+		) 
+    order by ballotid asc;
+	similarity integer;
+	-- ceux qui ont le tag
+	total_ballot_with_tag integer;
+	
+BEGIN
+	similarity := 0;
+	total_ballot_with_tag := 0;
+	
+	
+	for line in cursor_ballot_with_tag LOOP
+		IF (select Tagged(line.ballotid, tag) = true) THEN
+			total_ballot_with_tag := total_ballot_with_tag + 1;
+			IF (select SIMILARITY_NATIONAL_PARTY(line.ballotid, party1, party2) = true) THEN
+				similarity := similarity + 1;
+			END IF;
+		END IF;
+	END LOOP;
+	
+	return (similarity::decimal / total_ballot_with_tag) * 100;
+END;
+$$
+LANGUAGE PLPGSQL;
+
