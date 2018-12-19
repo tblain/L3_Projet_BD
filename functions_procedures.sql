@@ -195,3 +195,131 @@ BEGIN
 END;
 $$
 LANGUAGE PLPGSQL;
+
+-- 7
+
+CREATE OR REPLACE FUNCTION SIMILARITY_NATIONAL_PARTY(IN ballot integer, IN party1 TEXT, IN party2 TEXT) RETURNS boolean AS
+$$
+DECLARE 
+	res_party1 integer;
+	res_party2 integer;
+BEGIN
+  	select majority_vote_party(ballot, party1) into res_party1;
+	select majority_vote_party(ballot, party2) into res_party2;
+	return res_party1 = res_party2;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+-- 8
+
+CREATE OR REPLACE FUNCTION SIMILARITY_GROUP(IN ballot integer, IN group1 TEXT, IN group2 TEXT) RETURNS boolean AS
+$$
+DECLARE 
+	res_group1 integer;
+	res_group2 integer;
+BEGIN
+  	select majority_vote_group(ballot, group1) into res_group1;
+	select majority_vote_group(ballot, group2) into res_group2;
+	return res_group1 = res_group2;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION SIMILARITY_COUNTRIES(IN ballot integer, IN country1 TEXT, IN country2 TEXT) RETURNS boolean AS
+$$
+DECLARE 
+	res_country1 integer;
+	res_country2 integer;
+BEGIN
+  	select majority_vote_country(ballot, country1) into res_country1;
+	select majority_vote_country(ballot, country2) into res_country2;
+	return res_country1 = res_country2;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+-- 9
+
+CREATE OR REPLACE FUNCTION USUAL_SIMILARITY_PARTY(IN party1 TEXT, IN party2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+    -- utiliser LIMIT 100 pour tester les résultat
+    cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) 
+    where national_party = party1 and ballotid in 
+    (select distinct ballotid from outcomes join meps using(mepid) where national_party = party2) 
+    order by ballotid asc;
+    total_ballot integer;
+    similarity integer;
+BEGIN
+    similarity := 0;
+    
+    -- mettre total_ballot au nombre utiliser pour LIMIT (si utiliser)
+    select count(distinct ballotid) from outcomes join meps using(mepid) 
+    where national_party = party1 and ballotid in 
+    (select distinct ballotid from outcomes join meps using(mepid) where national_party = party2) into total_ballot;
+    raise notice 'count : %', total_ballot;
+    
+    FOR ballot in cursor_ballot LOOP
+      IF (select SIMILARITY_NATIONAL_PARTY(ballot.ballotid, party1, party2) = true) THEN
+        similarity := similarity + 1;
+      END IF;
+    END LOOP;
+  	return (similarity::decimal / total_ballot) *100 ;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION USUAL_SIMILARITY_GROUP(IN group1 TEXT, IN group2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+    cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) 
+	where group_id = group1 and ballotid in 
+	(select distinct ballotid from outcomes join meps using(mepid) where group_id = group2) 
+	order by ballotid asc;
+    total_ballot integer;
+    similarity integer;
+BEGIN
+    similarity := 0;
+    select count(distinct ballotid) from outcomes join meps using(mepid) 
+	where group_id = group1 and ballotid in 
+	(select distinct ballotid from outcomes join meps using(mepid) where group_id = group2) into total_ballot;
+	raise notice 'count : %', total_ballot;
+    
+    FOR ballot in cursor_ballot LOOP
+      IF (select SIMILARITY_GROUP(ballot.ballotid, group1, group2) = true) THEN
+        similarity := similarity + 1;
+      END IF;
+    END LOOP;
+  	return (similarity::decimal / total_ballot) *100 ;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION USUAL_SIMILARITY_COUNTRY(IN country1 TEXT, IN country2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+    cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) 
+	where country = country1 and ballotid in 
+	(select distinct ballotid from outcomes join meps using(mepid) where country = country2) 
+	order by ballotid asc;
+    total_ballot integer;
+    similarity integer;
+BEGIN
+    similarity := 0;
+    
+	select count(distinct ballotid) from outcomes join meps using(mepid) 
+	where country = country1 and ballotid in 
+	(select distinct ballotid from outcomes join meps using(mepid) where country = country2) into total_ballot;
+	
+	raise notice 'count : %', total_ballot;
+    
+    FOR ballot in cursor_ballot LOOP
+      IF (select SIMILARITY_COUNTRIES(ballot.ballotid, country1, country2) = true) THEN
+        similarity := similarity + 1;
+      END IF;
+    END LOOP;
+  	return (similarity::decimal / total_ballot) *100 ;
+END;
+$$
+LANGUAGE PLPGSQL;

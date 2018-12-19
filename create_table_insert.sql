@@ -33,8 +33,8 @@ CREATE TABLE Meps(
   groupe_id TEXT,
   gender varchar(1)
 );
--- la table est tout d'abord créée sans contraintes pour éviter les erreurs de doublons lors de l'import
--- on rajoutera les contraintes après
+-- la table est tout d'abord crï¿½ï¿½e sans contraintes pour ï¿½viter les erreurs de doublons lors de l'import
+-- on rajoutera les contraintes aprï¿½s
 CREATE TABLE Outcomes(
   ballotid integer,
   mepid integer,
@@ -44,11 +44,11 @@ CREATE TABLE Outcomes(
 
 -- Injecter les tuples
 
-\copy ballots(ballotid, vote_date, commitee) from '/home/tblain/Documents/license/bd/EP_DATA/ballots.csv' with (format csv, delimiter E'\t', header);
-\copy Tags from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/TAGS.csv' with (format csv, delimiter E'\t', header);
-\copy Ballots_To_Tags(ballotid, tag_id) from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/BALLOTS_TO_TAGS.csv' with (format csv, delimiter E'\t', header);
-\copy MEPS from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/MEPS.csv' with (format csv, delimiter E'\t', header);
-\copy Outcomes from '/home/tblain/Documents/licence/bd/L3_Projet_BD/EP_DATA/OUTCOMES.csv' with (format csv, delimiter E'\t', header);
+\copy ballots(ballotid, vote_date, commitee) from 'C:\Users\Public\easy_access\EP_DATA\BALLOTS.csv' with (format csv, delimiter E'\t', header);
+\copy Tags from 'C:\Users\Public\easy_access\EP_DATA\TAGS.csv' with (format csv, delimiter E'\t', header);
+\copy Ballots_To_Tags(ballotid, tag_id) from 'C:\Users\Public\easy_access\EP_DATA\BALLOTS_TO_TAGS.csv' with (format csv, delimiter E'\t', header);
+\copy MEPS from 'C:\Users\Public\easy_access\EP_DATA\MEPS.csv' with (format csv, delimiter E'\t', header, encoding 'utf8');
+\copy Outcomes from 'C:\Users\Public\easy_access\EP_DATA\Outcomes.csv' with (format csv, delimiter E'\t', header);
 
 /*
 \copy ballots(ballotid, vote_date, commitee) from '/home/tblain/Documents/bd/projet/EP_DATA/BALLOTS.csv' with (format csv, delimiter E'\t', header);
@@ -59,7 +59,7 @@ CREATE TABLE Outcomes(
 */
 
 -- delete les doublons
-alter table outcomes add column id serial primary key; -- on rajoute une clé primaire pour distinguer les outcomes
+alter table outcomes add column id serial primary key; -- on rajoute une clï¿½ primaire pour distinguer les outcomes
 Delete from outcomes a using outcomes b where a.id < b.id and a.mepid = b.mepid and a.ballotid = b.ballotid;
 
 -- delete les outcomes qui n'ont pas de ballot car supprimer pendant la phase de clean
