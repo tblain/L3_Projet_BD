@@ -360,3 +360,73 @@ END;
 $$
 LANGUAGE PLPGSQL;
 
+
+CREATE OR REPLACE FUNCTION CONTEXTUAL_SIMILARITY_GROUP(IN tag TEXT, IN group1 TEXT, IN group2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+	cursor_ballot_with_tag CURSOR FOR select distinct ballotid from outcomes 
+	join meps using(mepid) 
+    where group_id = group1 
+	and ballotid in 
+    	(
+			select distinct ballotid from outcomes join meps using(mepid) where group_id = group2
+		) 
+    order by ballotid asc;
+	similarity integer;
+	-- ceux qui ont le tag
+	total_ballot_with_tag integer;
+	
+BEGIN
+	similarity := 0;
+	total_ballot_with_tag := 0;
+	
+	
+	for line in cursor_ballot_with_tag LOOP
+		IF (select Tagged(line.ballotid, tag) = true) THEN
+			total_ballot_with_tag := total_ballot_with_tag + 1;
+			IF (select SIMILARITY_GROUP(line.ballotid, group1, group2) = true) THEN
+				similarity := similarity + 1;
+			END IF;
+		END IF;
+	END LOOP;
+	
+	return (similarity::decimal / total_ballot_with_tag) * 100;
+END;
+$$
+LANGUAGE PLPGSQL;
+
+
+CREATE OR REPLACE FUNCTION CONTEXTUAL_SIMILARITY_COUNTRY(IN tag TEXT, IN country1 TEXT, IN country2 TEXT) RETURNS REAL AS
+$$
+DECLARE 
+	cursor_ballot_with_tag CURSOR FOR select distinct ballotid from outcomes 
+	join meps using(mepid) 
+    where country = country1 
+	and ballotid in 
+    	(
+			select distinct ballotid from outcomes join meps using(mepid) where country = country2
+		) 
+    order by ballotid asc;
+	similarity integer;
+	-- ceux qui ont le tag
+	total_ballot_with_tag integer;
+	
+BEGIN
+	similarity := 0;
+	total_ballot_with_tag := 0;
+	
+	
+	for line in cursor_ballot_with_tag LOOP
+		IF (select Tagged(line.ballotid, tag) = true) THEN
+			total_ballot_with_tag := total_ballot_with_tag + 1;
+			IF (select SIMILARITY_COUNTRIES(line.ballotid, country1, country2) = true) THEN
+				similarity := similarity + 1;
+			END IF;
+		END IF;
+	END LOOP;
+	
+	return (similarity::decimal / total_ballot_with_tag) * 100;
+END;
+$$
+LANGUAGE PLPGSQL;
+
