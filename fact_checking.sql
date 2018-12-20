@@ -3,9 +3,11 @@
 CREATE OR REPLACE FUNCTION WE_ARE_THE_OPPOSITION_PARTY(IN party TEXT) RETURNS REAL AS
 $$
 DECLARE 
+  -- on veut les ids des ballots pour lesquelles ont votés les membres du parti 'party' 
 	cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) where national_party = party order by ballotid asc;
+  -- Le nombre de vote contre pour chaque ballot
 	against integer;
-	-- ceux qui ont le tag
+	-- nombre total de vote auxquelles à participé le parti
 	total_ballot integer;
 	
 BEGIN
@@ -29,7 +31,7 @@ $$
 DECLARE 
 	cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) where group_id = groupe order by ballotid asc;
 	against integer;
-	-- ceux qui ont le tag
+	-- nombre total de vote auxquelles à participé le groupe
 	total_ballot integer;
 	
 BEGIN
