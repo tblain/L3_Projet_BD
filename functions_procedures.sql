@@ -68,26 +68,26 @@ BEGIN
 	END LOOP;
   
   	IF pro = 0 and against = 0 and abstain = 0 THEN
-		return 0;
+      return 0;
   	ELSIF pro = against and against = abstain and abstain != 0 THEN
-		return 7;
+      return 7;
   	ELSE
 		IF pro > against and pro > abstain THEN
-	  		return 1;
+      return 1;
 		ELSIF against > pro and against > abstain THEN
-	  		return 2;
+      return 2;
 		ELSIF abstain > against and abstain > pro THEN
 	  		return 3;
 		ELSE
-	  		IF pro > abstain and against > abstain THEN 
-				return 4;
-	  		ELSIF pro > against and abstain > against THEN
-				return 5;
-	  		ELSIF abstain > pro and against > pro THEN
-				return 6;
-	  		END IF;
-		END IF;
-  	END IF;
+      IF pro > abstain and against > abstain THEN 
+        return 4;
+      ELSIF pro > against and abstain > against THEN
+        return 5;
+      ELSIF abstain > pro and against > pro THEN
+        return 6;
+      END IF;
+    END IF;
+  END IF;
 END;
 $$
 LANGUAGE PLPGSQL;
