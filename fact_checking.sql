@@ -3,11 +3,11 @@
 CREATE OR REPLACE FUNCTION WE_ARE_THE_OPPOSITION_PARTY(IN party TEXT) RETURNS REAL AS
 $$
 DECLARE 
-  -- on veut les ids des ballots pour lesquelles ont votés les membres du parti 'party' 
+  -- on veut les ids des ballots pour lesquelles ont vot? les membres du parti 'party' 
 	cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) where national_party = party order by ballotid asc;
   -- Le nombre de vote contre pour chaque ballot
 	against integer;
-	-- nombre total de vote auxquelles à participé le parti
+	-- nombre total de vote auxquelles ?particip?le parti
 	total_ballot integer;
 	
 BEGIN
@@ -31,7 +31,7 @@ $$
 DECLARE 
 	cursor_ballot CURSOR FOR select distinct ballotid from outcomes join meps using(mepid) where group_id = groupe order by ballotid asc;
 	against integer;
-	-- nombre total de vote auxquelles à participé le groupe
+	-- nombre total de vote auxquelles Ã  participÃ© le groupe
 	total_ballot integer;
 	
 BEGIN
@@ -52,6 +52,31 @@ LANGUAGE PLPGSQL;
 
 -- 2
 
--- 3
+/*
+	il suffit regarder
+*/
 
--- 4
+create table nb_vote_par_depute as
+	select meps.mepid, count(*)
+	from meps join outcomes on (meps.mepid=outcomes.mepid)
+	group by meps.mepid;
+
+CREATE OR REPLACE FUNCTION nous_sommes_uni_groupe(groupe_id integer) RETURNS REAL AS
+select groupe_id, avg(count),
+avg(ceil(cast(count as decimal)/(select count from nb_vote_par_depute n where n.mepid = r.mepid) * 100))
+from (
+  select groupe_id, m2.mepid, count(*) as count
+  from Outcomes o2
+  join meps m2 on (o2.mepid = m2.mepid)
+  where groupe_id = groupe_id and
+  		vote = any(
+  			select vote
+	    from vote_majo_par_groupe_par_ballot v
+	    where v.ballotid = o2.ballotid
+	      and v.groupe_id = m2.groupe_id
+  			)
+  group by groupe_id, m2.mepid
+  order by groupe_id, count(groupe_id) desc
+) r
+group by groupe_id
+;

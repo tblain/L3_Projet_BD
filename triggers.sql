@@ -20,3 +20,14 @@ CREATE TRIGGER TRIGGER_ADD_TAG AFTER INSERT ON Tags
 FOR EACH ROW EXECUTE PROCEDURE verify_has_parent_func();
 
 -- 2
+
+CREATE OR REPLACE FUNCTION after_add_outcome() RETURNS TRIGGER AS $$
+  DECLARE
+    
+  BEGIN
+    
+  END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER TRIGGER_after_add_coutcome AFTER INSERT ON Outcomes
+FOR EACH ROW EXECUTE PROCEDURE after_add_outcome();
