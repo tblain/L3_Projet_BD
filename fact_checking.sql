@@ -53,30 +53,41 @@ LANGUAGE PLPGSQL;
 -- 2
 
 /*
-	il suffit regarder
+	Pour un groupe on peut utiliser la fonction nous_sommes_uni_groupe
+	avec comme argument l'id du groupe en question qui renvoie la moyenne
+	de l'accord de ses députés avec le vote majoritaire.
+
+	la fonction est facilement derivable pour un pays ou un parti national
 */
 
+-- table qui stoque le nombre de vote par député pour accelerer la fonction d'après
 create table nb_vote_par_depute as
 	select meps.mepid, count(*)
 	from meps join outcomes on (meps.mepid=outcomes.mepid)
 	group by meps.mepid;
 
-CREATE OR REPLACE FUNCTION nous_sommes_uni_groupe(groupe_id integer) RETURNS REAL AS
-select groupe_id, avg(count),
-avg(ceil(cast(count as decimal)/(select count from nb_vote_par_depute n where n.mepid = r.mepid) * 100))
-from (
-  select groupe_id, m2.mepid, count(*) as count
-  from Outcomes o2
-  join meps m2 on (o2.mepid = m2.mepid)
-  where groupe_id = groupe_id and
-  		vote = any(
-  			select vote
-	    from vote_majo_par_groupe_par_ballot v
-	    where v.ballotid = o2.ballotid
-	      and v.groupe_id = m2.groupe_id
-  			)
-  group by groupe_id, m2.mepid
-  order by groupe_id, count(groupe_id) desc
-) r
-group by groupe_id
-;
+CREATE OR REPLACE FUNCTION nous_sommes_uni_groupe(groupe_id_arg TEXT) RETURNS REAL AS $$
+	DECLARE
+		pourcent_unis real;
+	BEGIN
+		select avg(ceil(cast(count as decimal)/
+				(select count from nb_vote_par_depute n where n.mepid = r.mepid) * 100)) into pourcent_unis
+			from (
+			  select groupe_id, m2.mepid, count(*) as count
+			  from Outcomes o2
+			  join meps m2 on (o2.mepid = m2.mepid)
+			  where groupe_id = groupe_id_arg and
+			  	vote = any(
+			  		select vote
+						  from vote_majo_par_groupe_par_ballot v
+						  where v.ballotid = o2.ballotid
+						  and v.groupe_id = m2.groupe_id
+			  	)
+			  group by groupe_id, m2.mepid
+			  order by groupe_id, count(groupe_id) desc
+			) r
+			group by groupe_id;
+
+			return pourcent_unis;
+	END;
+$$ LANGUAGE plpgsql;
